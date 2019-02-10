@@ -47,7 +47,6 @@ class bdPanelHotel extends bd {
 		$elJSON = array();
 		$final = array();
 		$index = 0;
-		//$conexio = connectaBD();
 
 		$lasql = "SELECT * FROM booking 
 		INNER JOIN room ON room.id_room = booking.id_room 
@@ -146,9 +145,11 @@ class bdPanelHotel extends bd {
 	public function eliminarBookingBD($id_booking_selected){
 		$final = array();
 
-		$lasql = "DELETE FROM booking WHERE id_booking = ".$id_booking_selected;
-
-		if($this->conexio->query($lasql))
+		$lasql = "DELETE FROM booking WHERE id_booking = ?";
+		$consulta = $this->conexio->prepare($lasql);
+		$consulta->bind_param("i", $id_booking_selected);
+		
+		if($consulta->execute())
 			$status = true;
 		else
 			$status = false;
@@ -159,11 +160,12 @@ class bdPanelHotel extends bd {
 
 	public function changeStateBookingBD($id_booking_selected){
 		$final = array();
-		//$conexio = connectaBD();
 
-		$lasql = "UPDATE booking SET estat = 'ocupat' WHERE id_booking = ".$id_booking_selected;
-
-		if($consulta = $this->conexio->query($lasql))
+		$lasql = "UPDATE booking SET estat = 'ocupat' WHERE id_booking = ?";
+		$consulta = $this->conexio->prepare($lasql);
+		$consulta->bind_param("i", $id_booking_selected);
+		
+		if($consulta->execute())
 			$status = true;
 		else
 			$status = false;
@@ -180,7 +182,7 @@ class bdPanelHotel extends bd {
 				AND (fecha_ini BETWEEN '".$fecha_ini."' AND '".$fecha_final."'
 				OR fecha_final BETWEEN '".$fecha_ini."' AND '".$fecha_final."')";
 			break;
-			case 2: /* En el caso de EDITAR una reserva cambiando la habitación */
+			case 2: /* En el caso de EDITAR una reserva usando el mismo número de piso hacemos la comparación quitando la propia reserva */
 				$lasql = "SELECT * FROM booking WHERE id_room = $numRoom 
 				AND NOT id_booking = $id_booking
 				AND (fecha_ini BETWEEN '".$fecha_ini."' AND '".$fecha_final."'
